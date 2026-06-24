@@ -181,9 +181,10 @@ with col1:
 
 with col2:
     smoking_history = st.selectbox(
-        "Riwayat Merokok",
-        ["never", "No Info", "current", "former", "ever", "not current"]
+    "Riwayat Merokok",
+    ["non-smoker", "smoker", "past-smoker"]
     )
+    
     bmi = st.number_input("BMI", min_value=10.0, max_value=70.0, value=25.0, step=0.1)
     hba1c = st.number_input("HbA1c Level (%)", min_value=3.5, max_value=15.0, value=5.5, step=0.1)
     glucose = st.number_input("Blood Glucose Level (mg/dL)", min_value=50, max_value=500, value=100)
