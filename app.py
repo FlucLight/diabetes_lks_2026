@@ -98,23 +98,38 @@ with col2:
 
 # ─── PREDICT ─────────────────────────────────────────────────────────────────────
 if st.button("🔍 Prediksi Sekarang", use_container_width=True):
-    input_data = pd.DataFrame([{
-        "gender": gender,
-        "age": float(age),
-        "hypertension": int(hypertension),
-        "heart_disease": int(heart_disease),
-        "smoking_history": smoking_history,
-        "bmi": float(bmi),
-        "HbA1c_level": float(hba1c),
-        "blood_glucose_level": float(glucose)
-    }])
+    
+    # Menyesuaikan hasil One-Hot Encoding alfabetis dari pandas
+    gender_Female = 1.0 if gender == "Female" else 0.0
+    gender_Male = 1.0 if gender == "Male" else 0.0
+    gender_Other = 1.0 if gender == "Other" else 0.0
+    
+    smoke_non = 1.0 if smoking_history == "non-smoker" else 0.0
+    smoke_past = 1.0 if smoking_history == "past-smoker" else 0.0
+    smoke_smoker = 1.0 if smoking_history == "smoker" else 0.0
+
+    # SUSUNAN FIX SESUAI DATASET YANG SUDAH DI-ENCODE MANUAL (Sama persis dengan X_train)
+    input_features = np.array([[
+        float(age), 
+        float(hypertension), 
+        float(heart_disease), 
+        float(bmi), 
+        float(hba1c), 
+        float(glucose),
+        gender_Female, 
+        gender_Male, 
+        gender_Other,
+        smoke_non, 
+        smoke_past, 
+        smoke_smoker
+    ]])
 
     try:
-        prediction = model.predict(input_data)[0]
+        prediction = model.predict(input_features)[0]
         prob_text = ""
-
+        
         if hasattr(model, "predict_proba"):
-            proba = model.predict_proba(input_data)[0]
+            proba = model.predict_proba(input_features)[0]
             prob_val = proba[1] * 100
             prob_text = f"<div class='result-prob'>Probabilitas diabetes: <strong>{prob_val:.1f}%</strong></div>"
 
@@ -126,7 +141,6 @@ if st.button("🔍 Prediksi Sekarang", use_container_width=True):
                 {prob_text}
             </div>
             """, unsafe_allow_html=True)
-            st.warning("Disarankan untuk konsultasi dengan dokter dan lakukan pemeriksaan lebih lanjut.")
         else:
             st.markdown(f"""
             <div class="result-box result-negative">
@@ -135,8 +149,7 @@ if st.button("🔍 Prediksi Sekarang", use_container_width=True):
                 {prob_text}
             </div>
             """, unsafe_allow_html=True)
-            st.success("Hasil menunjukkan tidak ada indikasi diabetes. Tetap jaga pola hidup sehat!")
-
+            
     except Exception as e:
         st.error(f"Terjadi error saat prediksi: {e}")
 
