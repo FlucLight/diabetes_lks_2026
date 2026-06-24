@@ -1,8 +1,8 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
-import pickle
-import os
 import joblib
+import os
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -130,11 +130,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── LOAD MODEL ─────────────────────────────────────────────────────────────────
-
 @st.cache_resource
 def load_model():
     model_path = "model_diabetes.pkl"  
-    
     if os.path.exists(model_path):
         try:
             return joblib.load(model_path), True
@@ -158,12 +156,11 @@ st.markdown("""
 if not model_loaded:
     st.markdown("""
     <div class="model-warning">
-        ⚠️ <strong>Model belum ditemukan.</strong> Simpan model lo sebagai <code>model.pkl</code> 
+        ⚠️ <strong>Model belum ditemukan.</strong> Simpan model lo sebagai <code>model_diabetes.pkl</code> 
         di folder yang sama dengan <code>app.py</code> ini.<br><br>
         Contoh cara simpan model:<br>
-        <code>import pickle<br>
-        with open("model.pkl", "wb") as f:<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;pickle.dump(pipeline, f)</code>
+        <code>import joblib<br>
+        joblib.dump(pipeline, "model_diabetes.pkl")</code>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
@@ -181,18 +178,16 @@ with col1:
 
 with col2:
     smoking_history = st.selectbox(
-    "Riwayat Merokok",
-    ["non-smoker", "smoker", "past-smoker"]
+        "Riwayat Merokok",
+        ["non-smoker", "smoker", "past-smoker"]
     )
-    
     bmi = st.number_input("BMI", min_value=10.0, max_value=70.0, value=25.0, step=0.1)
     hba1c = st.number_input("HbA1c Level (%)", min_value=3.5, max_value=15.0, value=5.5, step=0.1)
     glucose = st.number_input("Blood Glucose Level (mg/dL)", min_value=50, max_value=500, value=100)
 
 # ─── PREDICT ─────────────────────────────────────────────────────────────────────
-if st.button("🔍 Prediksi Sekarang"):
-    import pandas as pd
-
+if st.button("🔍 Prediksi Sekarang", use_container_width=True):
+    # Menyusun DataFrame inputan secara clean
     input_data = pd.DataFrame([{
         "gender": gender,
         "age": age,
@@ -207,7 +202,6 @@ if st.button("🔍 Prediksi Sekarang"):
     try:
         prediction = model.predict(input_data)[0]
         
-        # Probabilitas (kalau model support predict_proba)
         prob_text = ""
         if hasattr(model, "predict_proba"):
             proba = model.predict_proba(input_data)[0]
@@ -235,12 +229,12 @@ if st.button("🔍 Prediksi Sekarang"):
 
     except Exception as e:
         st.error(f"Terjadi error saat prediksi: {e}")
-        st.info("Pastikan format input sesuai dengan data training model lo.")
+        st.info("Pastikan format input sesuai dengan urutan dan nama kolom data training model lo.")
 
 # ─── FOOTER ──────────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown(
-    "<p style='text-align:center; color:#3d5a78; font-size:0.8rem;'>"
+    "<p style='text-align:center; color:#3d5a78; font-size:0.8rem;'> "
     "Dibuat untuk keperluan edukasi & LKS · Diabetes Prediction ML App"
     "</p>",
     unsafe_allow_html=True
