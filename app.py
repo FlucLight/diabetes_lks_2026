@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pickle
 import os
+import joblib
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -129,13 +130,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── LOAD MODEL ─────────────────────────────────────────────────────────────────
+
 @st.cache_resource
 def load_model():
-    model_path = "model.pkl"          
+    model_path = "model_diabetes.pkl"  
     
     if os.path.exists(model_path):
-        with open(model_path, "rb") as f:
-            return pickle.load(f), True
+        try:
+            return joblib.load(model_path), True
+        except Exception as e:
+            st.error(f"Gagal me-load model dengan joblib: {e}")
+            return None, False
     return None, False
 
 model, model_loaded = load_model()
