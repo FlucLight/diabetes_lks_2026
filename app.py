@@ -56,12 +56,12 @@ st.markdown("""
 # ─── LOAD MODEL ─────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    model_path = "model_diabetes.pkl"  
+    model_path = "model_diabetes.pkl"
     if os.path.exists(model_path):
         try:
             return joblib.load(model_path), True
         except Exception as e:
-            st.error(f"Gagal me-load model dengan joblib: {e}")
+            st.error(f"Gagal me-load model: {e}")
             return None, False
     return None, False
 
@@ -98,30 +98,23 @@ with col2:
 
 # ─── PREDICT ─────────────────────────────────────────────────────────────────────
 if st.button("🔍 Prediksi Sekarang", use_container_width=True):
-    
-    # Mapping manual One-Hot Encoding sesuai struktur training RandomForest lu
-    # Karena di model murni dia membaca input biner hasil OHE urutan kolomnya
-    gender_Female = 1 if gender == "Female" else 0
-    gender_Male = 1 if gender == "Male" else 0
-    gender_Other = 1 if gender == "Other" else 0
-    
-    smoke_non = 1 if smoking_history == "non-smoker" else 0
-    smoke_past = 1 if smoking_history == "past-smoker" else 0
-    smoke_smoker = 1 if smoking_history == "smoker" else 0
-
-    # Menyusun struktur fitur sesuai urutan X_train yang masuk ke RandomForest
-    input_features = np.array([[
-        age, hypertension, heart_disease, bmi, hba1c, glucose,
-        gender_Female, gender_Male, gender_Other,
-        smoke_non, smoke_past, smoke_smoker
-    ]])
+    input_data = pd.DataFrame([{
+        "gender": gender,
+        "age": float(age),
+        "hypertension": int(hypertension),
+        "heart_disease": int(heart_disease),
+        "smoking_history": smoking_history,
+        "bmi": float(bmi),
+        "HbA1c_level": float(hba1c),
+        "blood_glucose_level": float(glucose)
+    }])
 
     try:
-        prediction = model.predict(input_features)[0]
+        prediction = model.predict(input_data)[0]
         prob_text = ""
-        
+
         if hasattr(model, "predict_proba"):
-            proba = model.predict_proba(input_features)[0]
+            proba = model.predict_proba(input_data)[0]
             prob_val = proba[1] * 100
             prob_text = f"<div class='result-prob'>Probabilitas diabetes: <strong>{prob_val:.1f}%</strong></div>"
 
@@ -133,6 +126,7 @@ if st.button("🔍 Prediksi Sekarang", use_container_width=True):
                 {prob_text}
             </div>
             """, unsafe_allow_html=True)
+            st.warning("Disarankan untuk konsultasi dengan dokter dan lakukan pemeriksaan lebih lanjut.")
         else:
             st.markdown(f"""
             <div class="result-box result-negative">
@@ -141,7 +135,8 @@ if st.button("🔍 Prediksi Sekarang", use_container_width=True):
                 {prob_text}
             </div>
             """, unsafe_allow_html=True)
-            
+            st.success("Hasil menunjukkan tidak ada indikasi diabetes. Tetap jaga pola hidup sehat!")
+
     except Exception as e:
         st.error(f"Terjadi error saat prediksi: {e}")
 
